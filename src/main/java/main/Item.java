@@ -1,3 +1,5 @@
+package main;
+
 import java.util.Locale;
 
 public class Item {
@@ -69,20 +71,11 @@ public class Item {
         this.category = category;
     }
 
-    // reduce quantity after performing sale
-    public void decreaseQuantity(int quantity){
-        this.quantity -= quantity;
-    }
-
     @Override
     public String toString() {
-        return "Item{" +
-                "id=" + id +
+        return "(id=" + id +
                 ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", category=" + category +
                 ", quantity=" + quantity +
-                ", price=" + price +
-                '}';
+                ", price=" + price + ')';
     }
 }

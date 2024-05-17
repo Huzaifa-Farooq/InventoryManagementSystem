@@ -1,12 +1,18 @@
+package main;
+
 import java.util.ArrayList;
 
-public class Inventory {
+public class Inventory implements IInventory{
     private Database db;
     private ArrayList<Item> items;
 
     public Inventory(Database db){
         this.db = db;
-        this.items = db.getItems();
+        this.items = getInventoryItems();
+    }
+
+    public ArrayList<Item> getInventoryItems() {
+        return db.getItems();
     }
 
     // Get Low Stock Items (assuming a threshold for low stock)
@@ -18,30 +24,29 @@ public class Inventory {
         return filterLowStockItems(50);
     }
 
-    // Remove Item
-    public void removeItem(Item item) {
-        items.remove(item);
+    // Remove main.Item
+    public void removeItem(int itemId) {
         // Call Database method to remove item
-        db.removeItem(item);
+        db.removeItem(itemId);
     }
 
-    // Update Stock (assuming quantity is updated in the Item object)
-    public void updateStock(Item item) {
-        int index = items.indexOf(item);
-        items.set(index, item); // Update item in the list
-        // Call Database method to update stock (if Database supports stock updates)
-        db.updateItemStock(item);
+    public void addItem(Item item) {
+        db.insertItem(item);
     }
 
-    public void performSale(Item item, int quantity) {
-        item.decreaseQuantity(quantity); // Update quantity in the Item object
-        updateStock(item); // Update stock in the list and database
+    // Update Stock
+    public void performSale(int itemId, int quantity) {
+        Item item = db.retrieveItem(itemId);
+        int remainingQuantity = item.getQuantity() - quantity;
+        // Call main.Database method to update stock
+        db.updateItemStock(itemId, remainingQuantity);
     }
 
-    // defining function for filtering low stock items so we can use it in both cases when
+    // defining function for filtering low stock items, so we can use it in both cases when
     // threshold is given or not
     public ArrayList<Item> filterLowStockItems(int threshold) {
         ArrayList<Item> lowStockItems = new ArrayList<>();
+        ArrayList<Item> items = getInventoryItems();
         for (Item item : items) {
             if (item.getQuantity() < threshold) {
                 lowStockItems.add(item);

@@ -1,3 +1,5 @@
+package main;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -5,14 +7,38 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class Database {
+
+public class Database implements IDatabase {
     Connection connection;
     public Database(String connectionString, String username, String password){
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             this.connection = DriverManager.getConnection(connectionString, username, password);
             System.out.println("Connection Established");
+
+            this.createTables();
+            this.createAdmin();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createAdmin(){
+        String query = "SELECT * FROM ims.users WHERE username = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, "admin");
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                System.out.println("Admin user already exists");
+                return;
+            }
+
+            // Create the admin account with role "admin"
+            System.out.println("Creating admin account");
+            this.createAccount("admin", Roles.ADMINISTRATOR, "admin");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -27,7 +53,7 @@ public class Database {
             statement.setInt(4, item.getQuantity());
             statement.setDouble(5, item.getPrice());
             statement.executeUpdate();
-            System.out.println("Item inserted successfully");
+            System.out.println("main.Item inserted successfully");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -49,7 +75,7 @@ public class Database {
                 double price = resultSet.getDouble("price");
                 return new Item(itemId, name, description, category, quantity, price);
             } else {
-                System.out.println("Item not found with id: " + id);
+                System.out.println("main.Item not found with id: " + id);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -86,12 +112,11 @@ public class Database {
     }
 
     public User authenticateUser(String username, String password) {
-        String hashedPassword = password;
         String query = "SELECT * FROM ims.users WHERE username = ? AND password = ?";
         try {
             PreparedStatement statement = this.connection.prepareStatement(query);
             statement.setString(1, username);
-            statement.setString(2, hashedPassword);
+            statement.setString(2, password);
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
@@ -114,7 +139,7 @@ public class Database {
             statement.setString(1, username);
             statement.setString(2, password);
             statement.executeUpdate();
-            System.out.println("User created successfully");
+            System.out.println("main.User created successfully");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -132,7 +157,7 @@ public class Database {
                 User user = new User(username, role);
                 return user;
             } else {
-                System.out.println("User does not exists");
+                System.out.println("main.User does not exists");
                 return null;
             }
         } catch (SQLException e) {
@@ -142,29 +167,29 @@ public class Database {
     }
 
     public void deleteUser(String username) {
-        String query = "DELETE FROM users WHERE username = ?";
+        String query = "DELETE FROM ims.users WHERE username = ?";
         try {
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, username);
             int rowsDeleted = statement.executeUpdate();
             if (rowsDeleted > 0) {
-                System.out.println("User deleted successfully");
+                System.out.println("User " + username + " deleted successfully");
             } else {
-                System.out.println("User not found with username: " + username);
+                System.out.println("main.User not found with username: " + username);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void updateItemStock(Item item) {
+    public void updateItemStock(int itemId, int quantity) {
         String query = "UPDATE ims.items SET quantity = ? WHERE id = ?";
         try {
             PreparedStatement statement = this.connection.prepareStatement(query);
-            statement.setInt(1, item.getQuantity()); // Update quantity
-            statement.setInt(2, item.getId()); // Update based on item ID
+            statement.setInt(1, quantity); // Update quantity
+            statement.setInt(2, itemId); // Update based on item ID
             statement.executeUpdate();
-            System.out.println("Item stock updated successfully");
+            System.out.println("main.Item stock updated successfully");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -192,16 +217,16 @@ public class Database {
         return items;
     }
 
-    public void removeItem(Item item) {
+    public void removeItem(int itemId) {
         String query = "DELETE FROM ims.items WHERE id = ?";
         try {
             PreparedStatement statement = this.connection.prepareStatement(query);
-            statement.setInt(1, item.getId()); // Delete based on item ID
+            statement.setInt(1, itemId); // Delete based on item ID
             int rowsDeleted = statement.executeUpdate();
             if (rowsDeleted > 0) {
-                System.out.println("Item removed successfully");
+                System.out.println("main.Item removed successfully");
             } else {
-                System.out.println("Item not found with id: " + item.getId());
+                System.out.println("main.Item not found with id: " + itemId);
             }
         } catch (SQLException e) {
             e.printStackTrace();

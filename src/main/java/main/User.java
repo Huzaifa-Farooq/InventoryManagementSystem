@@ -1,6 +1,8 @@
+package main;
+
 import java.util.ArrayList;
 
-class User {
+public class User {
     private String role;
     private String username;
     private ArrayList<String> permissions;
@@ -16,9 +18,6 @@ class User {
                 this.permissions.add(Permissions.CAN_UPDATE_STOCK);
                 this.permissions.add(Permissions.CAN_VIEW_STOCK);
                 this.permissions.add(Permissions.CAN_CREATE_ACCOUNT);
-                break;
-            case Roles.SUPPLIER:
-                this.permissions.add(Permissions.CAN_VIEW_STOCK);
                 break;
             case Roles.CASHIER:
                 this.permissions.add(Permissions.CAN_UPDATE_STOCK);
@@ -52,7 +51,7 @@ class User {
 
     @Override
     public String toString() {
-        return "User {" +
+        return "main.User {" +
                 "username='" + username + "\', " +
                 "role='" + role + '\'' +
                 '}';
